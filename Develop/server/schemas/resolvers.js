@@ -5,17 +5,20 @@ const { signToken } = require('../utils/auth');
 const resolvers = {
   Query: {
     me: async (parent, args, context) => {
-
-        if(context.user) {
-            const userData = await User.findOne({_id: context.user._id}).select('-__v -password');
-            return userData;
+        try {
+            if(context.user) {
+                const userData = await User.findOne({_id: context.user._id}).select('-__v -password');
+                return userData;
+            }
+    
+            throw new AuthenticationError('Please make sure you are logged in!')
+        } catch (error) {
+            console.error
         }
-
-        throw new AuthenticationError('Please make sure you are logged in!')
+        
     },
   },
 
-//   help
 
   Mutation: {
     addUser: async (parent, { username, email, password }) => {
@@ -40,12 +43,12 @@ const resolvers = {
 
       return { token, user };
     },
-    saveBook: async (parent, { thoughtText, thoughtAuthor }) => {
-      const thought = await Thought.create({ thoughtText, thoughtAuthor });
+    saveBook: async (parent, { authors, description, bookId, image, link, title }) => {
+      const thought = await Book.create({ authors, description, bookId, image, link, title});
 
       await User.findOneAndUpdate(
-        { username: thoughtAuthor },
-        { $addToSet: { thoughts: thought._id } }
+        { username: authors },
+        { $addToSet: { savedBooks: book._id } }
       );
 
       return thought;
